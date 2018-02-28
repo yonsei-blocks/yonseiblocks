@@ -8,12 +8,19 @@ from uuid import uuid4
 import requests
 from flask import Flask, jsonify, request
 
+from yonseiblocks import storage
+# import storage # TODO: Determine why some machines understand this path
 
 class Blockchain(object):
     def __init__(self):
+
+        # Create database tables
+        storage.node.create_table()
+
+        # Initialize Blockchain elements
         self.chain = []
         self.utxo = []
-        self.nodes = set()
+        self.nodes = storage.node.read()
 
         # Create the Genesis Block
         self.create_new_block(proof=1337, prev_hash=1337)
@@ -88,6 +95,29 @@ class Blockchain(object):
 
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
+        storage.node.add(self.nodes)
+
+    def deregister_node(self, address):
+        """
+        Remove a Node from the list
+
+        :param address: <str> address of Node (eg. 'http://192.168.0.1:5000')
+        :return: None
+        """
+
+        parsed_url = urlparse(address)
+        if self.nodes.discard(parsed_url.netloc):
+            storage.node.remove(parsed_url.netloc)
+
+    def deregister_all_nodes(self):
+        """
+        Remove all Nodes from the list
+
+        :return: None
+        """
+
+        self.nodes = set()
+        storage.node.remove_all()
 
     def resolve_conflicts(self):
         """
@@ -264,9 +294,40 @@ def register_nodes():
 
     response = {
         'message': "New Nodes have been added",
-        'total_nodes': list(blockchain.nodes),
+        'cur_nodes': list(blockchain.nodes),
     }
     return jsonify(response), 201
+
+
+@app.route('/nodes/deregister', methods=['POST'])
+def deregister_nodes():
+
+    values = request.get_json()
+
+    nodes = values.get('nodes')
+    if nodes is None:
+        return "Error: Please provide a valid list of nodes", 400
+
+    for node in nodes:
+        blockchain.deregister_node(node)
+
+    response = {
+        'message': "Nodes have been removed",
+        'cur_nodes': list(blockchain.nodes),
+    }
+    return jsonify(response), 200
+
+
+@app.route('/nodes/deregister-all', methods=['POST'])
+def deregister_all_nodes():
+
+    blockchain.deregister_all_nodes()
+
+    response = {
+        'message': "All Nodes have been removed",
+        'cur_nodes': list(blockchain.nodes),
+    }
+    return jsonify(response), 200
 
 
 @app.route('/nodes/resolve', methods=['GET'])
