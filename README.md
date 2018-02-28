@@ -1,4 +1,4 @@
-<img src="YonseiUniversityEmblem.svg.png" width="150" align="right" alt="Yonsei Blocks" />
+<img src="docs/resources/YonseiUniversityEmblem.svg.png" width="150" align="right" alt="Yonsei Blocks" />
 
 # Yonsei Blocks
 
