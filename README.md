@@ -2,6 +2,8 @@
 
 # Yonsei Blocks
 
+[![Build Status](https://travis-ci.org/yonsei-blocks/yonseiblocks.svg?branch=master)](https://travis-ci.org/yonsei-blocks/yonseiblocks)
+
 Yonsei Blocks aims to be a simple yet fully-functional implementation of blockchain technology.
 
 ## License
